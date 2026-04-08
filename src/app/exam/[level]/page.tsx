@@ -1,6 +1,7 @@
-﻿import { notFound } from "next/navigation";
-
+import { notFound } from "next/navigation";
 import ExamLevelClient from "./ExamLevelClient";
+
+export const dynamic = "force-dynamic";
 
 const validLevels = new Set(["n5", "n4", "n3", "n2", "n1"]);
 
