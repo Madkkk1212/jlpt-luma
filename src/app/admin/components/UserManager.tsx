@@ -121,7 +121,7 @@ export default function UserManager() {
                  ✏️
                </button>
                <button 
-                 onClick={() => handleDelete(profile.id)}
+                 onClick={() => profile.id && handleDelete(profile.id)}
                  className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-rose-50 hover:text-rose-600 transition"
                >
                  🗑️
@@ -190,14 +190,14 @@ export default function UserManager() {
                         <label className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-4">Manual Material Unlock</label>
                         <div className="grid grid-cols-1 gap-2 max-h-[150px] overflow-y-auto p-2 bg-slate-50 rounded-2xl">
                            {materials.map(mat => (
-                             <button 
-                               key={mat.id}
-                               type="button"
-                               onClick={() => toggleMaterial(mat.id)}
-                               className={`p-3 rounded-xl text-left text-xs font-bold transition ${editingProfile.unlocked_materials?.includes(mat.id) ? 'bg-teal-500 text-white' : 'bg-white text-slate-600 border border-slate-100'}`}
-                             >
-                               {mat.title}
-                             </button>
+                              <button 
+                                key={mat.id}
+                                type="button"
+                                onClick={() => mat.id && toggleMaterial(mat.id)}
+                                className={`p-3 rounded-xl text-left text-xs font-bold transition ${(editingProfile.unlocked_materials || []).includes(mat.id) ? 'bg-teal-500 text-white' : 'bg-white text-slate-600 border border-slate-100'}`}
+                              >
+                                {mat.title}
+                              </button>
                            ))}
                         </div>
                      </div>
@@ -205,14 +205,14 @@ export default function UserManager() {
                         <label className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-4">Manual Level Unlock</label>
                         <div className="grid grid-cols-2 gap-2 p-2 bg-slate-50 rounded-2xl">
                            {levels.map(lvl => (
-                             <button 
-                               key={lvl.id}
-                               type="button"
-                               onClick={() => toggleLevel(lvl.id)}
-                               className={`p-3 rounded-xl text-center text-xs font-black transition ${editingProfile.unlocked_levels?.includes(lvl.id) ? 'bg-indigo-500 text-white' : 'bg-white text-slate-600 border border-slate-100'}`}
-                             >
-                               {lvl.level_code.toUpperCase()}
-                             </button>
+                              <button 
+                                key={lvl.id}
+                                type="button"
+                                onClick={() => lvl.id && toggleLevel(lvl.id)}
+                                className={`p-3 rounded-xl text-center text-xs font-black transition ${(editingProfile.unlocked_levels || []).includes(lvl.id) ? 'bg-indigo-500 text-white' : 'bg-white text-slate-600 border border-slate-100'}`}
+                              >
+                                {lvl.level_code.toUpperCase()}
+                              </button>
                            ))}
                         </div>
                      </div>

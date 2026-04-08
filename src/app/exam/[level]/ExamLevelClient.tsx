@@ -218,7 +218,7 @@ export default function ExamLevelClient({ level }: { level: string }) {
                     <h4 className="text-xl font-black text-slate-800 italic group-hover:text-teal-600 transition-colors">{test.title}</h4>
                     <div className="flex items-center gap-4 mt-1">
                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">⏱️ {test.duration_minutes}m</span>
-                       <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">📝 {test.total_questions}q</span>
+                       <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">📝 {selectedTest?.questions.length || 0}q</span>
                     </div>
                   </div>
                 </div>
@@ -305,7 +305,6 @@ export default function ExamLevelClient({ level }: { level: string }) {
                 <span className="px-4 py-1.5 rounded-full bg-teal-50 text-teal-600 text-[10px] font-black uppercase tracking-widest">Question {currentIdx + 1}</span>
              </div>
              <h2 className="text-2xl md:text-3xl font-black text-slate-900 italic leading-snug">{q.question_text}</h2>
-             {q.subtitle && <p className="mt-6 text-slate-400 font-medium italic leading-relaxed">{q.subtitle}</p>}
           </section>
 
           <div className="grid gap-4 pb-24">
