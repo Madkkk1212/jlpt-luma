@@ -25,12 +25,13 @@ export default function StudyHierarchyManager() {
   const [editingLevel, setEditingLevel] = useState<Partial<StudyLevel> | null>(null);
   const [editingChapter, setEditingChapter] = useState<Partial<StudyChapter> | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<Partial<StudyMaterial> | null>(null);
+  const [editingAppCategory, setEditingAppCategory] = useState<MaterialCategory | null>(null);
   
   // Dynamic Editor Content state
   const [formContent, setFormContent] = useState<any>({});
 
   // Icon Picker states
-  const [pickerTarget, setPickerTarget] = useState<'level'|'chapter'|'material'|null>(null);
+  const [pickerTarget, setPickerTarget] = useState<'category'|'level'|'chapter'|'material'|null>(null);
   const [categories, setCategories] = useState<IconCategory[]>([]);
   const [activeCategory, setActiveCategory] = useState<IconCategory | null>(null);
   const [iconLibrary, setIconLibrary] = useState<IconLibraryItem[]>([]);
@@ -148,8 +149,9 @@ export default function StudyHierarchyManager() {
   };
 
   // --- ICON PICKER LOGIC ---
-  const openIconPicker = async (target: 'level'|'chapter'|'material') => {
+  const openIconPicker = async (target: 'category'|'level'|'chapter'|'material', extra?: any) => {
     setPickerTarget(target);
+    if (target === 'category') setEditingAppCategory(extra);
     const cats = await getIconCategories();
     setCategories(cats);
     if (cats.length > 0) {
@@ -165,8 +167,18 @@ export default function StudyHierarchyManager() {
     setIconLibrary(lib);
   };
 
-  const pickIcon = (url: string) => {
-    if (pickerTarget === 'level' && editingLevel) setEditingLevel({...editingLevel, icon_url: url});
+  const pickIcon = async (url: string) => {
+    if (pickerTarget === 'category' && editingAppCategory) {
+      try {
+        const updatedCat = { ...editingAppCategory, icon_url: url };
+        // Use the existing upsert function - assuming it's imported or defined
+        const { upsertMaterialCategory } = await import("@/lib/db");
+        await upsertMaterialCategory(updatedCat);
+        setEditingAppCategory(null);
+        loadLevels(); // Refresh all data
+      } catch (err) { alert("Error saving category icon"); }
+    }
+    else if (pickerTarget === 'level' && editingLevel) setEditingLevel({...editingLevel, icon_url: url});
     else if (pickerTarget === 'chapter' && editingChapter) setEditingChapter({...editingChapter, icon_url: url});
     else if (pickerTarget === 'material' && editingMaterial) setEditingMaterial({...editingMaterial, icon_url: url});
     setPickerTarget(null);
@@ -295,13 +307,28 @@ export default function StudyHierarchyManager() {
          </div>
          <div className="flex flex-wrap gap-4">
             {appCategories.map(cat => (
-               <button 
-                  key={cat.id} 
-                  onClick={() => { setSelectedCategoryFilter(cat.id); setSelectedLevel(null); setChapters([]); setMaterials([]); }}
-                  className={`px-8 py-4 rounded-2xl font-black cursor-pointer shadow-lg transition-all border border-white/10 ${selectedCategoryFilter === cat.id ? 'bg-teal-500 scale-105' : 'bg-white/5 hover:bg-white/10'}`}
-               >
-                  {cat.name}
-               </button>
+               <div key={cat.id} className="relative group">
+                 <button 
+                    onClick={() => { setSelectedCategoryFilter(cat.id); setSelectedLevel(null); setChapters([]); setMaterials([]); }}
+                    className={`px-8 py-4 rounded-2xl font-black flex items-center gap-4 cursor-pointer shadow-lg transition-all border border-white/10 ${selectedCategoryFilter === cat.id ? 'bg-teal-500 scale-105 ring-4 ring-teal-500/20' : 'bg-white/5 hover:bg-white/10'}`}
+                 >
+                    {cat.icon_url ? (
+                      <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center p-1.5 shadow-sm">
+                        <img src={cat.icon_url || undefined} alt="icon" className="w-full h-full object-contain" />
+                      </div>
+                    ) : (
+                      <span className="text-xl">🌟</span>
+                    )}
+                    {cat.name}
+                 </button>
+                 <button 
+                  onClick={(e) => { e.stopPropagation(); openIconPicker('category', cat); }}
+                  className="absolute -top-2 -right-2 h-8 w-8 rounded-full bg-white text-slate-900 border shadow-xl flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-95"
+                  title="Edit Icon"
+                 >
+                   ✎
+                 </button>
+               </div>
             ))}
          </div>
       </section>
@@ -320,7 +347,11 @@ export default function StudyHierarchyManager() {
                       onClick={() => handleSelectLevel(lvl)}
                       className={`px-8 py-4 flex flex-col items-center gap-2 rounded-2xl font-black transition-all ${selectedLevel?.id === lvl.id ? 'bg-slate-900 text-white shadow-xl scale-105' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}
                    >
-                      {lvl.icon_url && <img src={lvl.icon_url} alt="icon" className="w-8 h-8 object-contain" />}
+                      {lvl.icon_url && (
+                        <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center p-1.5 shadow-sm">
+                          <img src={lvl.icon_url || undefined} alt="icon" className="w-full h-full object-contain" />
+                        </div>
+                      )}
                       <span className="text-sm">{lvl.level_code.toUpperCase()}</span>
                       <span className="text-[10px] font-medium opacity-50">{lvl.title}</span>
                    </button>
@@ -351,7 +382,11 @@ export default function StudyHierarchyManager() {
                       onClick={() => handleSelectChapter(chap)}
                       className={`px-5 py-3 flex items-center gap-3 rounded-xl text-sm font-bold transition-all ${selectedChapter?.id === chap.id ? 'bg-teal-500 text-white shadow-lg' : 'bg-white ring-1 ring-slate-200 text-slate-600 hover:ring-teal-500'}`}
                    >
-                      {chap.icon_url && <img src={chap.icon_url} alt="icon" className="w-5 h-5 object-contain" />}
+                      {chap.icon_url && (
+                        <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center p-1.5 shadow-sm">
+                          <img src={chap.icon_url || undefined} alt="icon" className="w-full h-full object-contain" />
+                        </div>
+                      )}
                       {chap.is_locked && <span className="text-xs">🔒</span>}
                       {chap.title}
                    </button>
@@ -382,7 +417,11 @@ export default function StudyHierarchyManager() {
               {materials.map(mat => (
                 <div key={mat.id} className="p-6 bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 relative group flex items-center justify-between">
                    <div className="flex items-center gap-4">
-                      {mat.icon_url && <img src={mat.icon_url} alt="icon" className="w-8 h-8 object-contain" />}
+                      {mat.icon_url && (
+                        <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center p-1.5 shadow-sm">
+                          <img src={mat.icon_url || undefined} alt="icon" className="w-full h-full object-contain" />
+                        </div>
+                      )}
                       <div>
                         <p className={`text-[10px] font-black uppercase tracking-widest ${mat.material_type === 'quiz' ? 'text-rose-500' : 'text-teal-600'}`}>{mat.material_type}</p>
                         <h4 className="font-bold text-slate-800 mt-1">{mat.title}</h4>
@@ -525,7 +564,7 @@ export default function StudyHierarchyManager() {
                     <div className="col-span-2 mt-2">
                        <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Material Custom Icon</label>
                        <div className="flex items-center gap-4">
-                         {editingMaterial.icon_url && <img src={editingMaterial.icon_url} className="w-12 h-12 rounded bg-slate-100 object-cover" alt="icon"/>}
+                         {editingMaterial.icon_url && <img src={editingMaterial.icon_url || undefined} className="w-12 h-12 rounded bg-slate-100 object-cover" alt="icon"/>}
                          <button onClick={() => openIconPicker('material')} className="px-4 py-2 bg-slate-100 font-bold text-xs rounded-lg hover:bg-slate-200">🖼️ Pilih dari Galeri</button>
                        </div>
                     </div>

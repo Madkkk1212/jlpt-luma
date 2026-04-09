@@ -52,7 +52,7 @@ export default function AdminDashboard() {
       ))}
       <div className="col-span-full md:col-span-2 mt-8 p-10 bg-slate-900 rounded-[2.5rem] text-white shadow-xl">
         <h3 className="text-2xl font-black mb-4">Selamat Datang, Admin!</h3>
-        <p className="opacity-70 leading-relaxed font-medium">Ini adalah panel manajemen konten Luma JLPT. Anda bisa mengubah banner, materi, level, hingga soal ujian secara real-time yang akan langsung terupdate di sisi pengguna.</p>
+        <p className="opacity-70 leading-relaxed font-medium">Ini adalah panel manajemen konten Reiwa LMS. Anda bisa mengubah banner, materi, level, hingga soal ujian secara real-time yang akan langsung terupdate di sisi pengguna.</p>
         <div className="mt-8 flex gap-4">
            <div className="flex h-12 items-center gap-3 bg-white/10 px-6 rounded-full font-bold text-sm">
              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />

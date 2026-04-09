@@ -45,95 +45,84 @@ export default function LoginClient() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#dff8f6,_#f8fbff_42%,_#eff4f8_100%)] px-4 py-4 md:px-8 md:py-6">
-      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-6xl gap-4 md:gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <section className="overflow-hidden rounded-[2.4rem] bg-[linear-gradient(145deg,_#0f172a,_#20304a_58%,_#182235)] text-white shadow-[0_30px_100px_rgba(15,23,42,0.22)]">
-          <div className="relative h-full px-6 py-8 md:px-10 md:py-10">
-            <div className="absolute inset-0 opacity-25">
-              <img
-                src="https://images.unsplash.com/photo-1491841550275-ad7854e35ca6?auto=format&fit=crop&w=1400&q=80"
-                alt="Study books"
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <div className="relative z-10">
-              <div className="flex h-16 w-16 items-center justify-center rounded-[1.6rem] bg-white/16 text-2xl font-black">
-                L
-              </div>
-              <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.35em] text-amber-300">
-                Luma JLPT
-              </p>
-              <h1 className="mt-3 text-3xl font-black tracking-tight md:text-5xl">
-                Silahkan Login Ke Akun Anda
-              </h1>
-              <p className="mt-6 max-w-xl text-base leading-8 text-slate-300">
-                User datang ke halaman ini saat ingin membuka fitur terkunci seperti
-                <span className="font-semibold text-white"> {redirectLabels[redirect] ?? "Soal"}</span>.
-              </p>
-            </div>
-          </div>
-        </section>
+    <main className="min-h-screen relative flex items-center justify-center p-6 overflow-hidden bg-[#f0f9ff]">
+      {/* Bright & Airy Background Decor */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-200/30 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-100/40 blur-[150px] rounded-full" />
+        <img
+          src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1920&q=80"
+          alt="Bright Study"
+          className="h-full w-full object-cover opacity-10 mix-blend-multiply"
+        />
+      </div>
 
-        <section className="flex items-center">
-          <div className="w-full rounded-[2.2rem] bg-white/80 p-5 shadow-[0_24px_90px_rgba(15,23,42,0.12)] ring-1 ring-white/80 backdrop-blur md:p-8">
-            <div className="mb-8 flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-[1.4rem] bg-[linear-gradient(135deg,_#14b8a6,_#f59e0b)] text-xl font-black text-white">
-                L
-              </div>
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-teal-500">
-                  Login Page
-                </p>
-                <h2 className="text-2xl font-black text-slate-800">Masuk ke akun demo</h2>
-              </div>
+      <div className="relative z-10 w-full max-w-[450px] animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <header className="mb-10 text-center">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-white shadow-xl ring-1 ring-slate-100 mb-6">
+               <span className="text-4xl font-black text-teal-600 italic">L</span>
             </div>
+            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-teal-600/60 mb-1">
+               Reiwa LMS Hub
+            </p>
+            <h1 className="text-4xl font-black tracking-tight text-slate-800 mb-2 italic">
+               Welcome Back
+            </h1>
+            <p className="text-sm text-slate-400 font-medium">
+               Akses materi premium dan simpan progres belajar Anda.
+            </p>
+        </header>
 
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="rounded-[1.6rem] bg-slate-50 px-5 py-4 ring-1 ring-slate-200 focus-within:ring-teal-500 transition-all">
-                <p className="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest">Email Address</p>
+        <section className="rounded-[3rem] bg-white/70 backdrop-blur-2xl p-10 shadow-[0_32px_120px_rgba(20,184,166,0.12)] ring-1 ring-white">
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block ml-2">Email Address</label>
+              <div className="relative group">
                 <input 
                   type="email" 
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full bg-transparent font-bold text-slate-800 outline-none placeholder:text-slate-300"
+                  className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-teal-500/20 focus:bg-white transition-all placeholder:text-slate-300"
                   required
                 />
               </div>
-
-              {errorMsg && (
-                <div className="p-4 rounded-xl bg-rose-50 text-rose-500 text-xs font-bold ring-1 ring-rose-100 italic">
-                  {errorMsg}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-[1.5rem] bg-slate-900 px-5 py-5 text-base font-black text-white transition hover:bg-slate-800 shadow-xl shadow-slate-900/20 active:scale-95 disabled:opacity-50"
-              >
-                {loading ? "Mengecek..." : "Login dan lanjutkan"}
-              </button>
-            </form>
-
-            <div className="mt-8 text-center">
-               <p className="text-sm text-slate-400 font-medium">Belum punya akun?</p>
-               <Link 
-                 href={`/register?redirect=${redirect}`} 
-                 className="mt-2 inline-block text-teal-600 font-black text-xs uppercase tracking-widest hover:underline"
-               >
-                 Daftar Sekarang →
-               </Link>
             </div>
 
-            <Link
-              href="/"
-              className="mt-4 inline-flex w-full justify-center rounded-[1.5rem] border border-slate-200 px-5 py-4 text-base font-semibold text-slate-700"
+            {errorMsg && (
+              <div className="p-4 rounded-2xl bg-rose-50 text-rose-500 text-[10px] font-bold ring-1 ring-rose-100 italic animate-in fade-in slide-in-from-top-2">
+                ⚠️ {errorMsg}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-16 rounded-2xl bg-slate-900 text-white font-black tracking-widest uppercase text-sm shadow-xl hover:bg-slate-800 hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
             >
-              Kembali ke homepage
-            </Link>
+              {loading ? "Verifying..." : "Sign In Account →"}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center pt-8 border-t border-slate-100">
+             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Don't have an account?</p>
+             <Link 
+               href={`/register?redirect=${redirect}`} 
+               className="inline-block px-10 py-3 rounded-full text-xs font-black uppercase tracking-widest text-teal-600 ring-2 ring-teal-600/10 hover:bg-teal-600 hover:text-white transition-all"
+             >
+               Register Now
+             </Link>
           </div>
         </section>
+
+        <footer className="mt-10 text-center">
+            <Link
+              href="/"
+              className="text-[10px] font-black uppercase tracking-[.3em] text-slate-400 hover:text-teal-600 transition-colors"
+            >
+              ← Back to Homepage
+            </Link>
+        </footer>
       </div>
     </main>
   );

@@ -55,6 +55,7 @@ export interface MaterialCategory {
   name: string
   description: string | null
   badge_color: string | null
+  icon_url: string | null
   sort_order: number
   created_at: string
   updated_at: string
@@ -70,6 +71,7 @@ export interface Material {
   indonesian_text: string | null
   example_sentence: string | null
   is_locked: boolean
+  icon_url: string | null
   card_accent_color: string | null
   tag_color: string | null
   detail_content: Json | null
@@ -86,6 +88,7 @@ export interface ExamLevel {
   gradient_from: string | null
   gradient_to: string | null
   badge_color: string | null
+  icon_url: string | null
   is_locked: boolean
   sort_order: number
   created_at: string

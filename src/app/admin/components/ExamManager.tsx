@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ExamLevel, ExamTest, Question } from "@/lib/types";
+import { ExamLevel, ExamTest, Question, IconCategory, IconLibraryItem } from "@/lib/types";
 import { 
   getExamLevels, getExamTests, getQuestions, 
   upsertExamLevel, deleteExamLevel, 
   upsertExamTest, deleteExamTest, 
-  upsertQuestion, deleteQuestion 
+  upsertQuestion, deleteQuestion,
+  getIconCategories, getIconLibrary
 } from "@/lib/db";
 
 export default function ExamManager() {
@@ -21,6 +22,12 @@ export default function ExamManager() {
   const [editingLevel, setEditingLevel] = useState<Partial<ExamLevel> | null>(null);
   const [editingTest, setEditingTest] = useState<Partial<ExamTest> | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<Partial<Question> | null>(null);
+
+  // Icon Picker states
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [iconCategories, setIconCategories] = useState<IconCategory[]>([]);
+  const [activeIconCategory, setActiveIconCategory] = useState<IconCategory | null>(null);
+  const [iconLibrary, setIconLibrary] = useState<IconLibraryItem[]>([]);
 
   useEffect(() => {
     fetchLevels();
@@ -105,7 +112,30 @@ export default function ExamManager() {
     } catch (e) { alert("Error deleting question"); }
   };
 
-  if (loading && levels.length === 0) return <div className="text-center p-10">Loading exam data...</div>;
+  // Icon Picker Logic
+  const openIconPicker = async () => {
+    setPickerOpen(true);
+    const cats = await getIconCategories();
+    setIconCategories(cats);
+    if (cats.length > 0) {
+      setActiveIconCategory(cats[0]);
+      const lib = await getIconLibrary(cats[0].id);
+      setIconLibrary(lib);
+    }
+  };
+
+  const handleSelectIconCategory = async (cat: IconCategory) => {
+    setActiveIconCategory(cat);
+    const lib = await getIconLibrary(cat.id);
+    setIconLibrary(lib);
+  };
+
+  const pickIcon = (url: string) => {
+    if (editingLevel) setEditingLevel({...editingLevel, icon_url: url});
+    setPickerOpen(false);
+  };
+
+  if (loading && levels.length === 0) return <div className="text-center p-10 font-bold text-slate-400">Loading exam data...</div>;
 
   return (
     <div className="space-y-10">
@@ -120,14 +150,17 @@ export default function ExamManager() {
             <div key={lvl.id} className="relative group">
               <button 
                 onClick={() => handleSelectLevel(lvl)}
-                className={`w-full p-6 rounded-3xl text-left transition-all ${selectedLevel?.id === lvl.id ? 'bg-slate-900 text-white shadow-xl scale-105' : 'bg-white border border-slate-100 hover:bg-slate-50'}`}
+                className={`w-full p-6 rounded-3xl text-left transition-all flex flex-col items-center gap-3 ${selectedLevel?.id === lvl.id ? 'bg-slate-900 text-white shadow-xl scale-105' : 'bg-white border border-slate-100 hover:bg-slate-50'}`}
               >
-                <p className="text-2xl font-black italic">{lvl.level_code.toUpperCase()}</p>
-                <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${selectedLevel?.id === lvl.id ? 'text-teal-400' : 'text-slate-400'}`}>{lvl.title}</p>
+                {lvl.icon_url && <img src={lvl.icon_url || undefined} alt="icon" className="w-12 h-12 object-contain" />}
+                <div className="text-center">
+                   <p className="text-2xl font-black italic">{lvl.level_code.toUpperCase()}</p>
+                   <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${selectedLevel?.id === lvl.id ? 'text-teal-400' : 'text-slate-400'}`}>{lvl.title}</p>
+                </div>
               </button>
-              <div className="absolute -top-2 -right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                 <button onClick={() => setEditingLevel(lvl)} className="p-2 bg-slate-100 rounded-lg text-xs">✎</button>
-                 <button onClick={() => handleDeleteLevel(lvl.id)} className="p-2 bg-rose-500 text-white rounded-lg text-xs">✕</button>
+              <div className="absolute -top-2 -right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition z-10">
+                 <button onClick={() => setEditingLevel(lvl)} className="p-2 bg-white shadow-md rounded-lg text-xs">✎</button>
+                 <button onClick={() => handleDeleteLevel(lvl.id)} className="p-2 bg-rose-500 text-white shadow-md rounded-lg text-xs">✕</button>
               </div>
             </div>
           ))}
@@ -243,6 +276,24 @@ export default function ExamManager() {
                       <input type="color" value={editingLevel.gradient_to || "#10b981"} onChange={e => setEditingLevel({...editingLevel, gradient_to: e.target.value})} className="w-full h-12 p-0 rounded-2xl overflow-hidden cursor-pointer bg-transparent border-none" />
                     </div>
                  </div>
+                 <div>
+                    <label className="text-[10px] font-black uppercase text-teal-600 mb-2 block">Level Icon</label>
+                    <div className="flex items-center gap-4">
+                      {editingLevel.icon_url && <img src={editingLevel.icon_url || undefined} alt="icon" className="w-12 h-12 rounded-xl bg-slate-100 object-contain shadow-sm" />}
+                      <button 
+                        onClick={openIconPicker} 
+                        className="flex-1 px-6 py-3 rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] hover:bg-slate-800 transition-all shadow-lg active:scale-95"
+                      >
+                        Pick from Gallery 🖼️
+                      </button>
+                    </div>
+                    <input 
+                      value={editingLevel.icon_url || ""} 
+                      onChange={e => setEditingLevel({...editingLevel, icon_url: e.target.value})} 
+                      placeholder="Or paste URL here..." 
+                      className="w-full px-6 py-3 rounded-2xl bg-slate-50 border-none outline-none text-slate-800 font-bold mt-3 text-xs" 
+                    />
+                 </div>
               </div>
               <div className="flex justify-end gap-4 mt-10 pt-6 border-t font-black tracking-widest text-[10px] uppercase">
                  <button onClick={() => setEditingLevel(null)} className="text-slate-400">Cancel</button>
@@ -353,6 +404,51 @@ export default function ExamManager() {
               </div>
            </div>
         </div>
+      )}
+
+      {/* ICON PICKER MODAL */}
+      {pickerOpen && (
+         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90] flex items-center justify-center p-4">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-5xl p-8 shadow-2xl flex flex-col h-[85vh]">
+               <div className="flex justify-between items-center mb-6 shrink-0 border-b pb-4">
+                  <h3 className="text-2xl font-black italic">Pick an Icon</h3>
+                  <button onClick={() => setPickerOpen(false)} className="h-8 w-8 rounded-full bg-slate-100 text-slate-500 font-bold hover:bg-slate-200">✕</button>
+               </div>
+               <div className="flex flex-1 overflow-hidden gap-6">
+                  {/* Category Sidebar */}
+                  <div className="w-1/4 border-r pr-6 overflow-y-auto space-y-2 text-[10px] font-black uppercase tracking-widest">
+                     <p className="text-slate-400 mb-4">Categories</p>
+                     {iconCategories.map(cat => (
+                       <button 
+                         key={cat.id} 
+                         onClick={() => handleSelectIconCategory(cat)}
+                         className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all ${activeIconCategory?.id === cat.id ? 'bg-slate-900 text-white shadow-lg scale-105' : 'bg-slate-50 hover:bg-slate-100'}`}
+                       >
+                         {cat.name}
+                       </button>
+                     ))}
+                  </div>
+                  {/* Icon Grid Viewer */}
+                  <div className="w-3/4 overflow-y-auto pl-2">
+                     {activeIconCategory ? (
+                        <div className="grid grid-cols-4 lg:grid-cols-6 gap-4">
+                          {iconLibrary.map(item => (
+                             <button 
+                               key={item.id} 
+                               onClick={() => pickIcon(item.url)}
+                               className="aspect-square bg-slate-50 rounded-2xl p-4 flex items-center justify-center ring-1 ring-slate-100 hover:ring-teal-500 hover:shadow-lg transition-all"
+                             >
+                                <img src={item.url} alt="icon" className="w-full h-full object-contain pointer-events-none" />
+                             </button>
+                          ))}
+                        </div>
+                     ) : (
+                        <p className="text-sm font-medium text-slate-400">Pilih kategori dari sebelah kiri.</p>
+                     )}
+                  </div>
+               </div>
+            </div>
+         </div>
       )}
     </div>
   );

@@ -99,7 +99,7 @@ export default function StudyLevelClient({ levelData }: { levelData: StudyLevel 
           <p className="text-sm font-medium text-slate-500 mt-2">{levelData.description}</p>
         </div>
         {levelData.icon_url && (
-          <img src={levelData.icon_url} alt="level icon" className="w-16 h-16 object-contain rounded-2xl shadow-sm bg-slate-50 p-2" />
+          <img src={levelData.icon_url || undefined} alt="level icon" className="w-16 h-16 object-contain rounded-2xl shadow-sm bg-slate-50 p-2" />
         )}
       </header>
 
@@ -117,7 +117,7 @@ export default function StudyLevelClient({ levelData }: { levelData: StudyLevel 
               >
                 <div className="flex items-center gap-4">
                   <div className={`h-10 w-10 rounded-xl flex items-center justify-center font-black text-sm overflow-hidden ${isLockedForUser ? 'bg-rose-50 text-rose-500' : 'bg-slate-100 text-slate-500'}`}>
-                    {isLockedForUser ? '🔒' : (chap.icon_url ? <img src={chap.icon_url} alt="chap" className="w-full h-full object-cover" /> : (idx + 1))}
+                    {isLockedForUser ? '🔒' : (chap.icon_url ? <img src={chap.icon_url || undefined} alt="chap" className="w-full h-full object-cover" /> : (idx + 1))}
                   </div>
                   <div>
                     <h3 className={`text-lg font-black ${isLockedForUser ? 'text-slate-400' : 'text-slate-800'}`}>{chap.title}</h3>
@@ -160,7 +160,7 @@ export default function StudyLevelClient({ levelData }: { levelData: StudyLevel 
                           {(isMatLocked || isQuizLocked) && <div className="absolute top-3 left-3 flex items-center justify-center p-1 bg-rose-500 text-white rounded-full text-[10px] w-6 h-6 z-10 shadow-lg" title={isQuizLocked ? "Quiz Terkunci" : "Premium Locked"}>🔒</div>}
                           
                           <div className={`text-3xl mb-3 transition-transform duration-500 ${!disableClick ? 'group-hover:scale-110' : ''}`}>
-                            {mat.icon_url ? <img src={mat.icon_url} alt="icon" className="w-8 h-8 object-contain" /> : getIconForType(mat.material_type)}
+                            {mat.icon_url ? <img src={mat.icon_url || undefined} alt="icon" className="w-8 h-8 object-contain" /> : getIconForType(mat.material_type)}
                           </div>
                           <span className={`text-xs font-black uppercase tracking-widest text-center ${isQuiz ? 'text-rose-500' : 'text-slate-800'}`}>
                             {mat.material_type.replace('_', ' ')}

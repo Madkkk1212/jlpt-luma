@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MaterialCategory, Material } from "@/lib/types";
-import { getMaterialCategories, getMaterials, upsertMaterialCategory, deleteMaterialCategory, upsertMaterial, deleteMaterial } from "@/lib/db";
+import { MaterialCategory, Material, IconCategory, IconLibraryItem } from "@/lib/types";
+import { 
+  getMaterialCategories, getMaterials, upsertMaterialCategory, deleteMaterialCategory, 
+  upsertMaterial, deleteMaterial,
+  getIconCategories, getIconLibrary
+} from "@/lib/db";
 
 export default function MaterialManager() {
   const [categories, setCategories] = useState<MaterialCategory[]>([]);
@@ -14,6 +18,13 @@ export default function MaterialManager() {
   
   const [editingMatId, setEditingMatId] = useState<string | null>(null);
   const [matForm, setMatForm] = useState<Partial<Material>>({});
+
+  // Icon Picker states
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerTarget, setPickerTarget] = useState<'category'|'material'|null>(null);
+  const [iconCategories, setIconCategories] = useState<IconCategory[]>([]);
+  const [activeIconCategory, setActiveIconCategory] = useState<IconCategory | null>(null);
+  const [iconLibrary, setIconLibrary] = useState<IconLibraryItem[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -47,6 +58,35 @@ export default function MaterialManager() {
       setEditingCatId(null);
       fetchData();
     } catch (e) { alert("Error saving category"); }
+  };
+
+  // Icon Picker Logic
+  const openIconPicker = async (target: 'category' | 'material') => {
+    setPickerTarget(target);
+    setPickerOpen(true);
+    const cats = await getIconCategories();
+    setIconCategories(cats);
+    if (cats.length > 0) {
+      setActiveIconCategory(cats[0]);
+      const lib = await getIconLibrary(cats[0].id);
+      setIconLibrary(lib);
+    }
+  };
+
+  const handleSelectIconCategory = async (cat: IconCategory) => {
+    setActiveIconCategory(cat);
+    const lib = await getIconLibrary(cat.id);
+    setIconLibrary(lib);
+  };
+
+  const pickIcon = (url: string) => {
+    if (pickerTarget === 'category') {
+      setCatForm({...catForm, icon_url: url});
+    } else if (pickerTarget === 'material') {
+      setMatForm({...matForm, icon_url: url});
+    }
+    setPickerOpen(false);
+    setPickerTarget(null);
   };
 
   const handleDeleteCat = async (id: string) => {
@@ -115,9 +155,16 @@ export default function MaterialManager() {
         {categories.map(cat => (
           <div key={cat.id} className="p-8 rounded-[2.5rem] bg-slate-50 ring-1 ring-inset ring-slate-200">
             <div className="flex justify-between items-start mb-8">
-              <div className="flex items-center gap-4">
-                <div className="w-4 h-12 rounded-full" style={{ backgroundColor: cat.badge_color || '#000' }} />
-                <div>
+              <div className="flex items-center gap-6">
+                <div className="relative">
+                  <div className="w-4 h-16 rounded-full" style={{ backgroundColor: cat.badge_color || '#000' }} />
+                  {cat.icon_url && (
+                    <div className="absolute top-1/2 -right-4 -translate-y-1/2 w-12 h-12 bg-white rounded-2xl shadow-xl flex items-center justify-center p-2 ring-1 ring-slate-100">
+                      <img src={cat.icon_url || undefined} alt="icon" className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                </div>
+                <div className={cat.icon_url ? "ml-6" : ""}>
                   <h4 className="text-2xl font-black text-slate-800 italic underline decoration-slate-200 underline-offset-8 decoration-4">{cat.name}</h4>
                   <p className="mt-2 text-sm text-slate-400 font-medium">{cat.description}</p>
                 </div>
@@ -129,14 +176,17 @@ export default function MaterialManager() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {materials.filter(m => m.category_id === cat.id).map(mat => (
+               {materials.filter(m => m.category_id === cat.id).map(mat => (
                 <div key={mat.id} className="bg-white p-6 rounded-3xl shadow-sm ring-1 ring-slate-100 relative group overflow-hidden">
                    <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 -mr-8 -mt-8 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500" />
                    <div className="relative z-10">
-                     <div className="flex justify-between items-start mb-4">
-                        <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest ${mat.is_locked ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                          {mat.is_locked ? 'Premium' : 'Free'}
-                        </span>
+                     <div className="flex justify-between items-center mb-4">
+                        <div className="flex items-center gap-3">
+                           {mat.icon_url && <img src={mat.icon_url || undefined} alt="icon" className="w-8 h-8 object-contain bg-slate-50 rounded-lg p-1" />}
+                           <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest ${mat.is_locked ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                             {mat.is_locked ? 'Premium' : 'Free'}
+                           </span>
+                        </div>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
                            <button onClick={() => handleEditMat(mat)} className="p-2 bg-slate-900 text-white rounded-lg">✎</button>
                            <button onClick={() => handleDeleteMat(mat.id)} className="p-2 bg-rose-500 text-white rounded-lg">✕</button>
@@ -185,6 +235,24 @@ export default function MaterialManager() {
                     <input type="number" value={catForm.sort_order || 0} onChange={e => setCatForm({...catForm, sort_order: parseInt(e.target.value)})} className="w-full px-6 py-3 rounded-2xl bg-slate-50 border-none outline-none text-slate-800 font-bold" />
                   </div>
                </div>
+               <div>
+                  <label className="block mb-2 text-teal-600">Category Icon</label>
+                  <div className="flex items-center gap-4">
+                     {catForm.icon_url && <img src={catForm.icon_url} alt="icon" className="w-12 h-12 rounded-xl bg-slate-100 object-contain shadow-sm" />}
+                     <button 
+                       onClick={() => openIconPicker('category')} 
+                       className="flex-1 px-6 py-3 rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] hover:bg-slate-800 transition-all shadow-lg active:scale-95"
+                     >
+                       Pick from Gallery 🖼️
+                     </button>
+                  </div>
+                  <input 
+                    value={catForm.icon_url || ""} 
+                    onChange={e => setCatForm({...catForm, icon_url: e.target.value})} 
+                    placeholder="Or paste URL here..." 
+                    className="w-full px-6 py-3 rounded-2xl bg-slate-50 border-none outline-none text-slate-800 font-bold mt-3 text-xs lowercase" 
+                  />
+               </div>
             </div>
             <div className="flex justify-end gap-4 mt-10">
                <button onClick={() => setEditingCatId(null)} className="text-slate-400 hover:text-slate-600 transition">Cancel</button>
@@ -222,11 +290,26 @@ export default function MaterialManager() {
                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] block mb-2">ID Translation</label>
                   <input value={matForm.indonesian_text || ""} onChange={e => setMatForm({...matForm, indonesian_text: e.target.value})} className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-none outline-none text-slate-800 font-bold" />
                </div>
-               <div className="col-span-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] block mb-2">Example Sentence</label>
-                  <textarea value={matForm.example_sentence || ""} onChange={e => setMatForm({...matForm, example_sentence: e.target.value})} className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-none outline-none text-slate-800 font-bold h-32" />
-               </div>
-               <div className="col-span-2 grid grid-cols-3 gap-8">
+                <div className="col-span-2">
+                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] block mb-2 text-teal-600">Material Icon</label>
+                   <div className="flex items-center gap-4">
+                      {matForm.icon_url && <img src={matForm.icon_url || undefined} alt="icon" className="w-12 h-12 rounded-xl bg-slate-100 object-contain shadow-sm" />}
+                      <button 
+                        onClick={() => openIconPicker('material')} 
+                        className="flex-1 px-6 py-3 rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] hover:bg-slate-800 transition-all shadow-lg active:scale-95"
+                      >
+                        Pick from Gallery 🖼️
+                      </button>
+                   </div>
+                   <input 
+                     value={matForm.icon_url || ""} 
+                     onChange={e => setMatForm({...matForm, icon_url: e.target.value})} 
+                     placeholder="Or paste URL here..." 
+                     className="w-full px-6 py-3 rounded-2xl bg-slate-50 border-none outline-none text-slate-800 font-bold mt-3 text-xs lowercase" 
+                   />
+                </div>
+
+                <div className="col-span-2 grid grid-cols-3 gap-8">
                   <div>
                     <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] block mb-2">Card Accent</label>
                     <input type="color" value={matForm.card_accent_color || "#14b8a6"} onChange={e => setMatForm({...matForm, card_accent_color: e.target.value})} className="w-full h-12 p-0 border-none bg-transparent cursor-pointer rounded-2xl overflow-hidden" />
@@ -267,6 +350,51 @@ export default function MaterialManager() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ICON PICKER MODAL */}
+      {pickerOpen && (
+         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90] flex items-center justify-center p-4">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-5xl p-8 shadow-2xl flex flex-col h-[85vh]">
+               <div className="flex justify-between items-center mb-6 shrink-0 border-b pb-4">
+                  <h3 className="text-2xl font-black italic">Pick an Icon</h3>
+                  <button onClick={() => setPickerOpen(false)} className="h-8 w-8 rounded-full bg-slate-100 text-slate-500 font-bold hover:bg-slate-200">✕</button>
+               </div>
+               <div className="flex flex-1 overflow-hidden gap-6">
+                  {/* Category Sidebar */}
+                  <div className="w-1/4 border-r pr-6 overflow-y-auto space-y-2">
+                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Categories</p>
+                     {iconCategories.map(cat => (
+                       <button 
+                         key={cat.id} 
+                         onClick={() => handleSelectIconCategory(cat)}
+                         className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-all text-[10px] uppercase tracking-widest ${activeIconCategory?.id === cat.id ? 'bg-slate-900 text-white shadow-lg scale-105' : 'bg-slate-50 hover:bg-slate-100'}`}
+                       >
+                         {cat.name}
+                       </button>
+                     ))}
+                  </div>
+                  {/* Icon Grid Viewer */}
+                  <div className="w-3/4 overflow-y-auto pl-2">
+                     {activeIconCategory ? (
+                        <div className="grid grid-cols-4 lg:grid-cols-6 gap-4">
+                          {iconLibrary.map(item => (
+                             <button 
+                               key={item.id} 
+                               onClick={() => pickIcon(item.url)}
+                               className="aspect-square bg-slate-50 rounded-2xl p-4 flex items-center justify-center ring-1 ring-slate-100 hover:ring-teal-500 hover:shadow-lg transition-all"
+                             >
+                                <img src={item.url} alt="icon" className="w-full h-full object-contain pointer-events-none" />
+                             </button>
+                          ))}
+                        </div>
+                     ) : (
+                        <p className="text-sm font-medium text-slate-400">Pilih kategori dari sebelah kiri.</p>
+                     )}
+                  </div>
+               </div>
+            </div>
+         </div>
       )}
     </div>
   );

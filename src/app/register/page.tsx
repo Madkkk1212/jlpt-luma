@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import RegisterClient from "./RegisterClient";
 
 export const metadata = {
-  title: "Register - Luma JLPT",
-  description: "Daftar akun Luma JLPT untuk mengakses materi dan ujian.",
+  title: "Register - Reiwa LMS",
+  description: "Daftar akun Reiwa LMS untuk mengakses materi dan ujian.",
 };
 
 export default function RegisterPage() {

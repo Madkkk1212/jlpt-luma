@@ -204,7 +204,7 @@ export default function StudyMaterialClient({ materialData }: { materialData: St
           </h1>
         </div>
         {materialData.icon_url && (
-          <img src={materialData.icon_url} alt="icon" className="w-16 h-16 object-contain rounded-2xl shadow-sm bg-slate-50 p-2" />
+          <img src={materialData.icon_url || undefined} alt="icon" className="w-16 h-16 object-contain rounded-2xl shadow-sm bg-slate-50 p-2" />
         )}
       </header>
       

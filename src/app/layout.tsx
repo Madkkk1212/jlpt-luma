@@ -17,7 +17,7 @@ import { getTheme } from "@/lib/db";
 export async function generateMetadata() {
   const theme = await getTheme();
   return {
-    title: theme?.app_name || "Luma JLPT",
+    title: theme?.app_name || "Reiwa LMS",
     description: theme?.tagline || "Premium Japanese Study Experience",
     icons: {
       icon: theme?.favicon_url || "/favicon.ico",

@@ -198,24 +198,82 @@ export default function Home() {
 
   if (showSplash) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-900 px-6">
-        <div 
-          className="rounded-[3rem] bg-white p-16 text-center shadow-2xl animate-pulse"
-          style={{ background: `linear-gradient(135deg, #ffffff, #f8fafc)` }}
-        >
-          <div 
-            className={`mx-auto flex h-32 w-32 items-center justify-center rounded-[2.5rem] shadow-xl overflow-hidden ${!theme?.header_use_logo_image ? 'text-5xl font-black text-white' : ''}`}
-            style={{ background: theme?.header_use_logo_image ? 'transparent' : `linear-gradient(135deg, ${theme?.splash_gradient_from || '#14b8a6'}, ${theme?.splash_gradient_to || '#f59e0b'})` }}
-          >
-            {theme?.header_use_logo_image && theme?.header_logo_url ? (
-              <img src={theme.header_logo_url} alt="Logo" className="w-full h-full object-contain" />
-            ) : (
-              theme?.logo_text || 'L'
-            )}
-          </div>
-          <p className="mt-10 text-xs font-black uppercase tracking-[0.6em] text-teal-500">{theme?.app_name || 'Luma'}</p>
-          <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-800 italic underline decoration-slate-100 decoration-8 underline-offset-4">{theme?.tagline || 'Think, and Grow.'}</h1>
+      <main 
+        className="flex min-h-screen items-center justify-center px-6 overflow-hidden relative"
+        style={{ background: `linear-gradient(135deg, ${theme?.splash_gradient_from || '#0f172a'}, ${theme?.splash_gradient_to || '#1e293b'})` }}
+      >
+        {/* Animated Background Patterns */}
+        <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+                <path d="M 100 0 L 0 0 0 100" fill="none" stroke="white" strokeWidth="0.5" />
+              </pattern>
+              <linearGradient id="line-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="transparent" />
+                <stop offset="50%" stopColor="white" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="transparent" />
+              </linearGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+            <line x1="-10%" y1="30%" x2="120%" y2="40%" stroke="url(#line-grad)" strokeWidth="1" className="animate-[pulse_4s_infinite]" />
+            <line x1="-10%" y1="50%" x2="120%" y2="60%" stroke="url(#line-grad)" strokeWidth="1" className="animate-[pulse_6s_infinite]" />
+            <line x1="-10%" y1="70%" x2="120%" y2="80%" stroke="url(#line-grad)" strokeWidth="1" className="animate-[pulse_5s_infinite]" />
+          </svg>
         </div>
+
+        <div className="relative z-10 text-center scale-up-center">
+          <div 
+             className="relative mx-auto flex h-40 w-40 items-center justify-center rounded-[3rem] overflow-hidden group shadow-[0_0_80px_rgba(255,255,255,0.15)]"
+             style={{ background: theme?.header_use_logo_image ? 'rgba(255,255,255,0.05)' : `linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05))` }}
+          >
+            {/* Spinning inner glow */}
+            <div className="absolute inset-0 animate-spin-slow opacity-30 bg-[conic-gradient(from_0deg,_transparent,_rgba(255,255,255,0.8),_transparent)]" />
+            
+            <div className={`relative z-10 flex h-32 w-32 items-center justify-center rounded-[2.5rem] ${theme?.header_use_logo_image ? 'bg-white' : 'bg-white/10 backdrop-blur-md'} shadow-2xl`}>
+              {theme?.header_use_logo_image && theme?.header_logo_url ? (
+                <img src={theme.header_logo_url || undefined} alt="Logo" className="w-full h-full object-contain p-4" />
+              ) : (
+                <span className="text-6xl font-black text-white italic drop-shadow-lg">{theme?.logo_text || 'L'}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-12 space-y-6">
+            <p className="text-xs font-black uppercase tracking-[1.2em] text-white/40 mb-2 animate-in fade-in slide-in-from-bottom-2 duration-1000">
+              {theme?.app_name || 'reiwa lms'}
+            </p>
+            <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white italic drop-shadow-[0_10px_30px_rgba(0,0,0,0.3)] animate-in fade-in duration-1000 delay-300">
+              {theme?.tagline || 'Think, and Grow.'}
+            </h1>
+          </div>
+
+          {/* Luxury Loading Bar */}
+          <div className="mt-20 mx-auto w-64 h-[2px] bg-white/5 rounded-full overflow-hidden">
+             <div className="h-full bg-white animate-[shimmer_2s_infinite]" style={{ width: '40%' }} />
+          </div>
+        </div>
+
+        <style jsx>{`
+          .scale-up-center {
+            animation: scale-up-center 1s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+          }
+          @keyframes scale-up-center {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(300%); }
+          }
+          .animate-spin-slow {
+             animation: spin 8s linear infinite;
+          }
+          @keyframes spin {
+             from { transform: rotate(0deg); }
+             to { transform: rotate(360deg); }
+          }
+        `}</style>
       </main>
     );
   }
@@ -239,16 +297,19 @@ export default function Home() {
           style={{ backgroundColor: `${theme?.nav_bg}CC` || '#0f172aCC' }}
         >
            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                 <div className={`h-10 w-10 flex items-center justify-center rounded-xl overflow-hidden ${!theme?.header_use_logo_image ? 'bg-slate-900 text-white font-black' : ''}`}>
-                    {theme?.header_use_logo_image && theme?.header_logo_url ? (
-                       <img src={theme.header_logo_url} alt="Logo" className="w-full h-full object-contain" />
-                    ) : (
-                       theme?.logo_text || 'L'
-                    )}
-                 </div>
-                 <h2 className="font-black italic text-xl text-slate-800">{theme?.app_name || 'Luma'}</h2>
-              </div>
+               <div className="flex items-center gap-6">
+                  <div className={`h-14 w-14 flex items-center justify-center rounded-2xl overflow-hidden shadow-2xl ring-2 ring-white/10 ${theme?.header_use_logo_image ? 'bg-white/5' : 'bg-slate-900 text-white font-black'}`}>
+                     {theme?.header_use_logo_image && theme?.header_logo_url ? (
+                        <img src={theme.header_logo_url || undefined} alt="Logo" className="w-full h-full object-contain p-1.5" />
+                     ) : (
+                        <span className="text-2xl font-black italic">{theme?.logo_text || 'R'}</span>
+                     )}
+                  </div>
+                  <div>
+                    <h2 className="font-black italic text-3xl text-slate-800 tracking-tighter leading-none">{theme?.app_name || 'reiwa lms'}</h2>
+                    <p className="text-[7px] font-black uppercase tracking-[0.5em] text-teal-600/50 mt-1">Premium Platform</p>
+                  </div>
+               </div>
               <div className="flex bg-slate-100/50 p-1 rounded-full ring-1 ring-black/5">
                  {tabs.map((tab) => (
                     <button
@@ -378,7 +439,13 @@ export default function Home() {
                     {categories.map(cat => (
                       <button 
                         key={cat.id} 
-                        onClick={() => setSelectedStudyCategory(cat.id)}
+                        onClick={() => {
+                          if (!loggedIn) {
+                            router.push(`/login?redirect=materi`);
+                            return;
+                          }
+                          setSelectedStudyCategory(cat.id);
+                        }}
                         className="group relative bg-white rounded-[3rem] p-10 text-left shadow-sm ring-1 ring-slate-100 hover:shadow-2xl hover:-translate-y-2 active:scale-95 transition-all duration-500 overflow-hidden"
                       >
                          <div className="flex items-center gap-6 mb-6 relative z-10">
@@ -386,7 +453,11 @@ export default function Home() {
                               className="h-20 w-20 rounded-[2rem] flex items-center justify-center text-4xl shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
                               style={{ backgroundColor: cat.badge_color || '#14b8a6', color: '#fff' }}
                             >
-                               {cat.name === 'JLPT' ? '🇯🇵' : '👷‍♂️'}
+                               {cat.icon_url ? (
+                                 <img src={cat.icon_url || undefined} alt={cat.name} className="w-full h-full object-contain" />
+                               ) : (
+                                 cat.name === 'JLPT' ? '🇯🇵' : '👷‍♂️'
+                                )}
                             </div>
                             <div>
                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-1">Study Path</p>
@@ -403,11 +474,41 @@ export default function Home() {
                   </div>
                 ) : (
                   /* STUDY LEVELS VIEW (Filtered by selected category) */
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-right-8 duration-500">
+                  <div className="space-y-8 animate-in slide-in-from-right-8 duration-500">
+                    {/* Category Header */}
+                    <div className="flex items-center gap-6 mb-10 pb-6 border-b border-slate-100">
+                       <button 
+                         onClick={() => setSelectedStudyCategory(null)}
+                         className="h-12 w-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black shadow-lg hover:scale-105 active:scale-95 transition-all"
+                       >
+                         ←
+                       </button>
+                       {categories.find(c => c.id === selectedStudyCategory)?.icon_url && (
+                         <img 
+                           src={categories.find(c => c.id === selectedStudyCategory)?.icon_url || undefined} 
+                           alt="cat icon" 
+                           className="w-16 h-16 object-contain p-2 bg-white rounded-[1.5rem] shadow-xl ring-1 ring-slate-100" 
+                         />
+                       )}
+                       <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Jalur Belajar</p>
+                          <h3 className="text-3xl font-black text-slate-800 italic">{categories.find(c => c.id === selectedStudyCategory)?.name}</h3>
+                       </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {studyLevels.filter(sl => sl.category_id === selectedStudyCategory).length > 0 ? studyLevels.filter(sl => sl.category_id === selectedStudyCategory).map(sl => (
                       <Link 
                         key={sl.id} 
-                        href={`/study/level/${sl.level_code}`}
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (!loggedIn) {
+                            router.push(`/login?redirect=materi`);
+                            return;
+                          }
+                          router.push(`/study/level/${sl.level_code}`);
+                        }}
                         className="group relative bg-white rounded-[2.5rem] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] ring-1 ring-slate-100 hover:shadow-2xl hover:-translate-y-2 active:scale-95 transition-all duration-500 overflow-hidden flex flex-col"
                       >
                          <div className="flex items-start justify-between mb-8">
@@ -415,11 +516,11 @@ export default function Home() {
                               className="h-16 w-16 rounded-3xl flex items-center justify-center text-2xl font-black text-white shadow-lg overflow-hidden group-hover:scale-110 transition-transform duration-500"
                               style={{ backgroundColor: sl.icon_url ? 'transparent' : (sl.badge_color || '#14b8a6') }}
                             >
-                               {sl.icon_url ? (
-                                 <img src={sl.icon_url} alt={sl.level_code} className="w-full h-full object-cover" />
-                               ) : (
-                                 sl.level_code.toUpperCase()
-                               )}
+                                {sl.icon_url ? (
+                                  <img src={sl.icon_url || undefined} alt={sl.level_code} className="w-full h-full object-cover" />
+                                ) : (
+                                  sl.level_code.toUpperCase()
+                                )}
                             </div>
                          </div>
                          
@@ -440,9 +541,10 @@ export default function Home() {
                        <div className="col-span-full py-10 text-center font-bold text-slate-400 italic">Level materi untuk kategori ini belum tersedia.</div>
                     )}
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
+          )}
 
             {activeTab === "soal" && (
               <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000">
@@ -469,10 +571,14 @@ export default function Home() {
                           className={`group relative flex items-center gap-6 p-6 rounded-[2.5rem] text-left transition-all duration-500 ${!hasAccess ? 'bg-slate-50/50 grayscale opacity-60 border border-slate-100' : 'bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] ring-1 ring-slate-100 hover:shadow-2xl hover:-translate-y-2 hover:ring-teal-500/20'}`}
                         >
                            <div 
-                            className="h-20 w-20 shrink-0 rounded-[2rem] flex items-center justify-center text-3xl font-black text-white shadow-xl rotate-3 group-hover:rotate-0 transition-all duration-500"
-                            style={{ background: `linear-gradient(135deg, ${lvl.gradient_from || '#0d9488'}, ${lvl.gradient_to || '#0f172a'})` }}
+                            className="h-20 w-20 shrink-0 rounded-[2rem] flex items-center justify-center text-3xl font-black text-white shadow-xl rotate-3 group-hover:rotate-0 transition-all duration-500 overflow-hidden"
+                            style={{ background: lvl.icon_url ? 'transparent' : `linear-gradient(135deg, ${lvl.gradient_from || '#0d9488'}, ${lvl.gradient_to || '#0f172a'})` }}
                            >
-                              {lvl.level_code.toUpperCase()}
+                              {lvl.icon_url ? (
+                                <img src={lvl.icon_url || undefined} alt={lvl.level_code} className="w-full h-full object-cover" />
+                              ) : (
+                                lvl.level_code.toUpperCase()
+                              )}
                            </div>
                            
                            <div className="flex-1">
