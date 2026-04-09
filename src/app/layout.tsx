@@ -12,10 +12,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Luma JLPT",
-  description: "Responsive JLPT dummy web app with mobile navigation and splash loading.",
-};
+import { getTheme } from "@/lib/db";
+
+export async function generateMetadata() {
+  const theme = await getTheme();
+  return {
+    title: theme?.app_name || "Luma JLPT",
+    description: theme?.tagline || "Premium Japanese Study Experience",
+    icons: {
+      icon: theme?.favicon_url || "/favicon.ico",
+    },
+  };
+}
 
 export const viewport = {
   width: "device-width",

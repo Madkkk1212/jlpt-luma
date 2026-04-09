@@ -11,6 +11,8 @@ export interface AppTheme {
   app_name: string
   tagline: string
   logo_text: string
+  header_use_logo_image: boolean
+  header_logo_url: string
   primary_color: string
   accent_color: string
   bg_gradient_from: string
@@ -24,6 +26,7 @@ export interface AppTheme {
   button_primary_text: string
   splash_gradient_from: string
   splash_gradient_to: string
+  favicon_url: string
   social_instagram: string | null
   social_twitter: string | null
   social_website: string | null
@@ -130,4 +133,55 @@ export interface Profile {
   unlocked_levels: string[] | null
   created_at?: string
   updated_at?: string
+}
+
+export interface StudyLevel {
+  id: string
+  level_code: string
+  title: string
+  description: string | null
+  category_id: string | null
+  badge_color: string | null
+  icon_url: string | null
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export interface StudyChapter {
+  id: string
+  level_id: string
+  title: string
+  description: string | null
+  sort_order: number
+  is_locked: boolean
+  icon_url: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface StudyMaterial {
+  id: string
+  chapter_id: string
+  material_type: 'moji_goi' | 'bunpou' | 'dokkai' | 'choukai' | 'quiz'
+  title: string
+  content: Json
+  sort_order: number
+  icon_url: string | null
+  is_locked: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface IconCategory {
+  id: string
+  name: string
+  created_at: string
+}
+
+export interface IconLibraryItem {
+  id: string
+  category_id: string
+  url: string
+  created_at: string
 }

@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { AppTheme, BannerSlide, MaterialCategory, Material, ExamLevel, ExamTest, Question, Profile } from './types'
+import { AppTheme, BannerSlide, MaterialCategory, Material, ExamLevel, ExamTest, Question, Profile, StudyLevel, StudyChapter, StudyMaterial } from './types'
 
 // Theme
 export async function getTheme(): Promise<AppTheme | null> {
@@ -165,4 +165,145 @@ export async function upsertProfile(profile: Partial<Profile>) {
 export async function deleteProfile(id: string) {
   const { error } = await supabase.from('profiles').delete().eq('id', id)
   if (error) throw error
+}
+
+// --- NEW HIERARCHY (Study Framework) ---
+export async function getStudyLevels(): Promise<StudyLevel[]> {
+  const { data, error } = await supabase.from('study_levels').select('*').order('sort_order', { ascending: true })
+  if (error) return []
+  return data
+}
+
+export async function getStudyLevelByCode(levelCode: string): Promise<StudyLevel | null> {
+  const { data, error } = await supabase.from('study_levels').select('*').eq('level_code', levelCode).single()
+  if (error) return null
+  return data
+}
+
+export async function upsertStudyLevel(level: Partial<StudyLevel>) {
+  const { data, error } = await supabase.from('study_levels').upsert(level).select()
+  if (error) throw error
+  return data
+}
+
+export async function deleteStudyLevel(id: string) {
+  const { error } = await supabase.from('study_levels').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function getStudyChapters(levelId: string): Promise<StudyChapter[]> {
+  const { data, error } = await supabase.from('study_chapters').select('*').eq('level_id', levelId).order('sort_order', { ascending: true })
+  if (error) return []
+  return data
+}
+
+export async function upsertStudyChapter(chapter: Partial<StudyChapter>) {
+  const { data, error } = await supabase.from('study_chapters').upsert(chapter).select()
+  if (error) throw error
+  return data
+}
+
+export async function deleteStudyChapter(id: string) {
+  const { error } = await supabase.from('study_chapters').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function getStudyMaterials(chapterId: string): Promise<StudyMaterial[]> {
+  const { data, error } = await supabase.from('study_materials').select('*').eq('chapter_id', chapterId).order('sort_order', { ascending: true })
+  if (error) return []
+  return data
+}
+
+export async function getStudyMaterialById(id: string): Promise<StudyMaterial | null> {
+  const { data, error } = await supabase.from('study_materials').select('*').eq('id', id).single()
+  if (error) return null
+  return data
+}
+
+export async function upsertStudyMaterial(material: Partial<StudyMaterial>) {
+  const { data, error } = await supabase.from('study_materials').upsert(material).select()
+  if (error) throw error
+  return data
+}
+
+export async function deleteStudyMaterial(id: string) {
+  const { error } = await supabase.from('study_materials').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ==========================================
+// ICON GALLERY MANAGER
+// ==========================================
+import { IconCategory, IconLibraryItem } from './types';
+
+export async function getIconCategories(): Promise<IconCategory[]> {
+  const { data, error } = await supabase.from('icon_categories').select('*').order('created_at', { ascending: true })
+  if (error) return []
+  return data
+}
+
+export async function upsertIconCategory(categoryName: string) {
+  const { data, error } = await supabase.from('icon_categories').insert({ name: categoryName }).select()
+  if (error) throw error
+  return data
+}
+
+export async function deleteIconCategory(id: string) {
+  const { error } = await supabase.from('icon_categories').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function getIconLibrary(categoryId: string): Promise<IconLibraryItem[]> {
+  const { data, error } = await supabase.from('icon_library').select('*').eq('category_id', categoryId).order('created_at', { ascending: false })
+  if (error) return []
+  return data
+}
+
+export async function addIconsToLibrary(categoryId: string, urls: string[]) {
+  const records = urls.map(url => ({ category_id: categoryId, url }));
+  const { data, error } = await supabase.from('icon_library').insert(records);
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteIconFromLibrary(id: string) {
+  const { error } = await supabase.from('icon_library').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ==========================================
+// MATERIAL PROGRESS TRACKING
+// ==========================================
+
+export async function getCompletedMaterials(userEmail: string): Promise<string[]> {
+  const { data, error } = await supabase.from('user_material_progress').select('material_id').eq('user_email', userEmail);
+  if (error || !data) return [];
+  return data.map(row => row.material_id);
+}
+
+export async function markMaterialCompleted(userEmail: string, materialId: string) {
+  const { data, error } = await supabase.from('user_material_progress').upsert(
+    { user_email: userEmail, material_id: materialId, completed_at: new Date().toISOString() },
+    { onConflict: 'user_email,material_id' }
+  );
+  if (error) throw error;
+  return data;
+}
+
+export async function getTotalStudyMaterialsCount(): Promise<number> {
+  const { count, error } = await supabase.from('study_materials').select('*', { count: 'exact', head: true });
+  if (error || count === null) return 0;
+  return count;
+}
+
+export async function getUserLastProgressDetails(userEmail: string): Promise<any[]> {
+  // Ambil history progress 5 terakhir beserta detail materialnya
+  const { data, error } = await supabase
+    .from('user_material_progress')
+    .select('completed_at, study_materials (title, material_type, chapter_id)')
+    .eq('user_email', userEmail)
+    .order('completed_at', { ascending: false })
+    .limit(5);
+  if (error || !data) return [];
+  return data as any[];
 }

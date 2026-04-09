@@ -3,14 +3,15 @@
 import { useState, useEffect } from "react";
 import AdminDashboard from "./components/AdminDashboard";
 import BannerManager from "./components/BannerManager";
-import MaterialManager from "./components/MaterialManager";
+import StudyHierarchyManager from "./components/StudyHierarchyManager";
 import ExamManager from "./components/ExamManager";
 import ThemeManager from "./components/ThemeManager";
 import SettingsPanel from "./components/SettingsPanel";
 import UserManager from "./components/UserManager";
+import IconManager from "./components/IconManager";
 import { supabase } from "@/lib/supabase";
 
-type AdminTab = "dashboard" | "theme" | "banners" | "materials" | "exams" | "settings" | "users";
+type AdminTab = "dashboard" | "theme" | "banners" | "icons" | "materials" | "exams" | "settings" | "users";
 
 export default function AdminClient() {
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
@@ -67,6 +68,7 @@ export default function AdminClient() {
 
   const tabs: { id: AdminTab; label: string; icon: string }[] = [
     { id: "dashboard", label: "Dashboard", icon: "📊" },
+    { id: "icons", label: "Icons Gallery", icon: "✨" },
     { id: "theme", label: "Theme", icon: "🎨" },
     { id: "banners", label: "Banners", icon: "🖼️" },
     { id: "materials", label: "Materials", icon: "📚" },
@@ -113,12 +115,13 @@ export default function AdminClient() {
         </header>
 
         <section className="bg-white rounded-[2rem] p-10 shadow-sm ring-1 ring-slate-100">
-          {activeTab === "dashboard" && <AdminDashboard />}
-          {activeTab === "theme" && <ThemeManager />}
-          {activeTab === "banners" && <BannerManager />}
-          {activeTab === "materials" && <MaterialManager />}
-          {activeTab === "exams" && <ExamManager />}
-          {activeTab === "users" && <UserManager />}
+          { activeTab === "dashboard" && <AdminDashboard /> }
+          { activeTab === "icons" && <IconManager /> }
+          { activeTab === "theme" && <ThemeManager /> }
+          { activeTab === "banners" && <BannerManager /> }
+          { activeTab === "materials" && <StudyHierarchyManager /> }
+          { activeTab === "exams" && <ExamManager /> }
+          { activeTab === "users" && <UserManager /> }
           {activeTab === "settings" && <SettingsPanel />}
         </section>
       </main>

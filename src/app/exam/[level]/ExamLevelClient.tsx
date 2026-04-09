@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { getExamLevels, getExamTests, getQuestions, getProfileByEmail } from "@/lib/db";
 import { ExamLevel, ExamTest, Question, Profile } from "@/lib/types";
+import KioskBarrier from "@/app/components/KioskBarrier";
 
 // --- ART ICON COMPONENTS ---
 const ArtIcon = {
@@ -279,7 +280,8 @@ export default function ExamLevelClient({ level }: { level: string }) {
     const progress = ((currentIdx + 1) / selectedTest.questions.length) * 100;
 
     return (
-      <div className="flex flex-col min-h-screen bg-slate-50 font-sans">
+      <KioskBarrier title={`Mode Ujian: ${selectedTest.title}`}>
+        <div className="flex flex-col min-h-screen bg-slate-50 font-sans">
         {/* Modern Header / Progress */}
         <div className="sticky top-0 z-50 bg-white shadow-sm">
            <div className="max-w-2xl mx-auto px-6 py-6">
@@ -353,6 +355,7 @@ export default function ExamLevelClient({ level }: { level: string }) {
            </div>
         </div>
       </div>
+      </KioskBarrier>
     );
   }
 

@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { getTheme, getBanners, getMaterialCategories, getMaterials, getExamLevels, getProfileByEmail, upsertProfile } from "@/lib/db";
-import { AppTheme, BannerSlide, MaterialCategory, Material, ExamLevel, Profile } from "@/lib/types";
+import { getTheme, getBanners, getMaterialCategories, getMaterials, getExamLevels, getProfileByEmail, upsertProfile, getStudyLevels, getCompletedMaterials, getTotalStudyMaterialsCount, getUserLastProgressDetails } from "@/lib/db";
+import { AppTheme, BannerSlide, MaterialCategory, Material, ExamLevel, Profile, StudyLevel } from "@/lib/types";
 
 // --- ART ICON COMPONENTS ---
 const ArtNavIcon = {
@@ -64,13 +64,16 @@ export default function Home() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
   const [examProgress, setExamProgress] = useState<any>({});
+  const [selectedStudyCategory, setSelectedStudyCategory] = useState<string | null>(null);
   
   // Supabase Data
   const [theme, setTheme] = useState<AppTheme | null>(null);
   const [banners, setBanners] = useState<BannerSlide[]>([]);
   const [categories, setCategories] = useState<MaterialCategory[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [studyLevels, setStudyLevels] = useState<StudyLevel[]>([]);
   const [levels, setLevels] = useState<ExamLevel[]>([]);
+  const [dashboardMetrics, setDashboardMetrics] = useState({ totalMaterials: 0, completed: 0, lastRead: null as any });
 
   // Carousel State
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -93,27 +96,33 @@ export default function Home() {
   useEffect(() => {
     const init = async () => {
       // 1. Initial Data Fetching
-      const [t, b, c, m, l] = await Promise.all([
+      const [t, b, c, m, l, sl, totalMatsCount] = await Promise.all([
         getTheme(),
         getBanners(),
         getMaterialCategories(),
         getMaterials(),
-        getExamLevels()
+        getExamLevels(),
+        getStudyLevels(),
+        getTotalStudyMaterialsCount()
       ]);
       setTheme(t);
       setBanners(b);
       setCategories(c);
       setMaterials(m);
       setLevels(l);
+      setStudyLevels(sl);
 
       // 2. Auth & Profile Sync
       const authed = isAuthed();
       setLoggedIn(authed);
       
+      let emailForMetrics = "";
+
       if (authed) {
         const saved = localStorage.getItem("luma-user-profile");
         if (saved) {
           const localProfile = JSON.parse(saved);
+          emailForMetrics = localProfile.email;
           try {
             const freshProfile = await getProfileByEmail(localProfile.email);
             if (freshProfile) {
@@ -126,6 +135,19 @@ export default function Home() {
             setUserProfile(localProfile);
           }
         }
+      }
+
+      // Fetch Realtime Dashboard Metrics
+      if (emailForMetrics) {
+        const completedMats = await getCompletedMaterials(emailForMetrics);
+        const lastReadArr = await getUserLastProgressDetails(emailForMetrics);
+        setDashboardMetrics({
+          totalMaterials: totalMatsCount,
+          completed: completedMats.length,
+          lastRead: lastReadArr.length > 0 ? lastReadArr[0] : null
+        });
+      } else {
+        setDashboardMetrics({ totalMaterials: totalMatsCount, completed: 0, lastRead: null });
       }
 
       // 3. App State
@@ -182,10 +204,14 @@ export default function Home() {
           style={{ background: `linear-gradient(135deg, #ffffff, #f8fafc)` }}
         >
           <div 
-            className="mx-auto flex h-32 w-32 items-center justify-center rounded-[2.5rem] text-5xl font-black text-white shadow-xl"
-            style={{ background: `linear-gradient(135deg, ${theme?.splash_gradient_from || '#14b8a6'}, ${theme?.splash_gradient_to || '#f59e0b'})` }}
+            className={`mx-auto flex h-32 w-32 items-center justify-center rounded-[2.5rem] shadow-xl overflow-hidden ${!theme?.header_use_logo_image ? 'text-5xl font-black text-white' : ''}`}
+            style={{ background: theme?.header_use_logo_image ? 'transparent' : `linear-gradient(135deg, ${theme?.splash_gradient_from || '#14b8a6'}, ${theme?.splash_gradient_to || '#f59e0b'})` }}
           >
-            {theme?.logo_text || 'L'}
+            {theme?.header_use_logo_image && theme?.header_logo_url ? (
+              <img src={theme.header_logo_url} alt="Logo" className="w-full h-full object-contain" />
+            ) : (
+              theme?.logo_text || 'L'
+            )}
           </div>
           <p className="mt-10 text-xs font-black uppercase tracking-[0.6em] text-teal-500">{theme?.app_name || 'Luma'}</p>
           <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-800 italic underline decoration-slate-100 decoration-8 underline-offset-4">{theme?.tagline || 'Think, and Grow.'}</h1>
@@ -200,16 +226,27 @@ export default function Home() {
           :root {
             --primary: ${theme?.primary_color || '#14b8a6'};
             --accent: ${theme?.accent_color || '#f59e0b'};
+            --nav-bg: ${theme?.nav_bg || '#0f172a'};
+            --nav-active: ${theme?.nav_active_color || '#2dd4bf'};
             --text-main: ${theme?.text_primary || '#0f172a'};
           }
        `}</style>
 
       <div className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-screen-2xl flex-col pb-40 md:pb-12">
         {/* Desktop Header */}
-        <header className="mb-8 hidden rounded-[2.5rem] bg-white/80 p-4 shadow-xl ring-1 ring-white/50 backdrop-blur-xl md:block px-8">
+        <header 
+          className="mb-8 hidden rounded-[2.5rem] p-4 shadow-xl ring-1 ring-white/50 backdrop-blur-xl md:block px-8"
+          style={{ backgroundColor: `${theme?.nav_bg}CC` || '#0f172aCC' }}
+        >
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                 <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-slate-900 text-white font-black">{theme?.logo_text || 'L'}</div>
+                 <div className={`h-10 w-10 flex items-center justify-center rounded-xl overflow-hidden ${!theme?.header_use_logo_image ? 'bg-slate-900 text-white font-black' : ''}`}>
+                    {theme?.header_use_logo_image && theme?.header_logo_url ? (
+                       <img src={theme.header_logo_url} alt="Logo" className="w-full h-full object-contain" />
+                    ) : (
+                       theme?.logo_text || 'L'
+                    )}
+                 </div>
                  <h2 className="font-black italic text-xl text-slate-800">{theme?.app_name || 'Luma'}</h2>
               </div>
               <div className="flex bg-slate-100/50 p-1 rounded-full ring-1 ring-black/5">
@@ -217,7 +254,11 @@ export default function Home() {
                     <button
                       key={tab.id}
                       onClick={() => changeTab(tab.id)}
-                      className={`px-8 py-3 rounded-full text-sm font-black tracking-wider transition-all ${activeTab === tab.id ? 'bg-slate-900 text-white shadow-lg scale-105' : 'text-slate-400 hover:text-slate-600'}`}
+                      style={{ 
+                        backgroundColor: activeTab === tab.id ? (theme?.nav_active_color || '#2dd4bf') : 'transparent',
+                        color: activeTab === tab.id ? '#ffffff' : undefined
+                      }}
+                      className={`px-8 py-3 rounded-full text-sm font-black tracking-wider transition-all ${activeTab === tab.id ? 'shadow-lg scale-105' : 'text-slate-400 hover:text-slate-600'}`}
                     >
                       {tab.label.toUpperCase()}
                     </button>
@@ -273,14 +314,14 @@ export default function Home() {
 
                 <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
-                    { label: "Progress User", value: "68%", note: "Target N5 Juli" },
-                    { label: "Last Read", value: "Grammar Bab 4", note: "12 menit lalu" },
-                    { label: "Last Soal", value: "Quiz N5", note: "Skor 8/10" },
-                    { label: "Rekomendasi", value: "Reading Flow", note: "20 soal berikutnya" },
+                    { label: "Progress User", value: dashboardMetrics.totalMaterials > 0 ? `${Math.round((dashboardMetrics.completed / dashboardMetrics.totalMaterials) * 100)}%` : '0%', note: `${dashboardMetrics.completed} dari ${dashboardMetrics.totalMaterials} Bab` },
+                    { label: "Last Read", value: dashboardMetrics.lastRead ? dashboardMetrics.lastRead.study_materials.title : "-", note: dashboardMetrics.lastRead ? new Date(dashboardMetrics.lastRead.completed_at).toLocaleDateString() : 'Belum Mulai' },
+                    { label: "Last Soal", value: "Akan Datang", note: "Belum Ujian" },
+                    { label: "Level Saat Ini", value: userProfile?.is_premium ? "Premium N2" : "Basic N5", note: "Terus Berlatih!" },
                   ].map((item) => (
                     <div key={item.label} className="rounded-3xl bg-white p-4 md:p-6 shadow-sm ring-1 ring-black/[0.03]">
                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{item.label}</p>
-                      <p className="text-xl md:text-2xl font-black text-slate-800 italic">{item.value}</p>
+                      <p className="text-xl md:text-2xl font-black text-slate-800 italic line-clamp-1">{item.value}</p>
                       <p className="text-xs text-slate-400 font-medium mt-1">{item.note}</p>
                     </div>
                   ))}
@@ -312,63 +353,94 @@ export default function Home() {
 
             {activeTab === "materi" && (
               <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000">
-                <header>
-                   <h2 className="text-4xl font-black text-slate-900 tracking-tight italic mb-3">Materi Belajar</h2>
-                   <p className="text-slate-500 font-medium">Kurikulum terlengkap untuk persiapan JLPT Anda.</p>
+                <header className="flex items-start justify-between">
+                   <div>
+                     <h2 className="text-4xl font-black text-slate-900 tracking-tight italic mb-3">Materi Belajar</h2>
+                     <p className="text-slate-500 font-medium">
+                       {!selectedStudyCategory 
+                         ? 'Pilih jalur sertifikasi tujuan Anda.' 
+                         : 'Pilih level untuk melihat daftar materi lengkap.'}
+                     </p>
+                   </div>
+                   {selectedStudyCategory && (
+                     <button 
+                       onClick={() => setSelectedStudyCategory(null)}
+                       className="px-6 py-3 rounded-2xl bg-white ring-1 ring-slate-100 text-slate-500 font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 active:scale-95 transition-all shadow-sm flex items-center gap-2"
+                     >
+                        ← KEMBALI
+                     </button>
+                   )}
                 </header>
 
-                <div className="grid gap-8">
-                  {categories.map(cat => (
-                    <div key={cat.id} className="space-y-6">
-                      <div className="flex items-center gap-3">
-                         <div className="h-2 w-2 rounded-full bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.5)]" />
-                         <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">{cat.name}</h3>
-                      </div>
-                      
-                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {materials.filter(m => m.category_id === cat.id).map(mat => {
-                          const hasAccess = !mat.is_locked || userProfile?.is_premium || (userProfile?.unlocked_materials || []).includes(mat.id);
-                          
-                          return (
-                            <Link 
-                              key={mat.id} 
-                              href={hasAccess ? `/study/${mat.slug}` : "#"}
-                              onClick={(e) => { 
-                                if (!hasAccess) {
-                                  e.preventDefault();
-                                  alert('Materi ini premium! Silakan hubungi admin untuk akses.');
-                                }
-                              }}
-                              className="group relative bg-white rounded-[2.5rem] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] ring-1 ring-slate-100 hover:shadow-2xl hover:ring-teal-500/20 active:scale-95 transition-all duration-500 overflow-hidden"
+                {!selectedStudyCategory ? (
+                  /* CATEGORY SELECTION VIEW */
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {categories.map(cat => (
+                      <button 
+                        key={cat.id} 
+                        onClick={() => setSelectedStudyCategory(cat.id)}
+                        className="group relative bg-white rounded-[3rem] p-10 text-left shadow-sm ring-1 ring-slate-100 hover:shadow-2xl hover:-translate-y-2 active:scale-95 transition-all duration-500 overflow-hidden"
+                      >
+                         <div className="flex items-center gap-6 mb-6 relative z-10">
+                            <div 
+                              className="h-20 w-20 rounded-[2rem] flex items-center justify-center text-4xl shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
+                              style={{ backgroundColor: cat.badge_color || '#14b8a6', color: '#fff' }}
                             >
-                               <div className="flex items-start justify-between mb-8">
-                                  <div className="h-16 w-16 rounded-3xl bg-slate-50 flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-transform duration-500">
-                                     📚
-                                  </div>
-                                  {!hasAccess && (
-                                     <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-slate-100 text-slate-400">🔒</div>
-                                  )}
-                               </div>
-                               
-                               <h4 className="text-xl font-black text-slate-800 italic leading-tight mb-3 group-hover:text-teal-600 transition-colors">{mat.title}</h4>
-                               <p className="text-sm text-slate-400 font-medium leading-relaxed mb-8 line-clamp-2">{mat.subtitle}</p>
-                               
-                               <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
-                                     {hasAccess ? 'Mulai Belajar' : 'Hubungi Admin'}
-                                  </span>
-                                  <span className="text-teal-500 font-bold opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 transition-all">→</span>
-                                </div>
+                               {cat.name === 'JLPT' ? '🇯🇵' : '👷‍♂️'}
+                            </div>
+                            <div>
+                               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-1">Study Path</p>
+                               <h3 className="text-3xl font-black text-slate-800 italic">{cat.name}</h3>
+                            </div>
+                         </div>
+                         <p className="text-slate-500 relative z-10">{cat.description}</p>
+                         
+                         {/* Subtle Background Glow */}
+                         <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity" style={{ backgroundColor: cat.badge_color || '#14b8a6' }} />
+                      </button>
+                    ))}
+                    {categories.length === 0 && <div className="col-span-full py-10 text-center text-slate-400 italic font-bold">Kategori belum tersedia.</div>}
+                  </div>
+                ) : (
+                  /* STUDY LEVELS VIEW (Filtered by selected category) */
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-right-8 duration-500">
+                    {studyLevels.filter(sl => sl.category_id === selectedStudyCategory).length > 0 ? studyLevels.filter(sl => sl.category_id === selectedStudyCategory).map(sl => (
+                      <Link 
+                        key={sl.id} 
+                        href={`/study/level/${sl.level_code}`}
+                        className="group relative bg-white rounded-[2.5rem] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] ring-1 ring-slate-100 hover:shadow-2xl hover:-translate-y-2 active:scale-95 transition-all duration-500 overflow-hidden flex flex-col"
+                      >
+                         <div className="flex items-start justify-between mb-8">
+                            <div 
+                              className="h-16 w-16 rounded-3xl flex items-center justify-center text-2xl font-black text-white shadow-lg overflow-hidden group-hover:scale-110 transition-transform duration-500"
+                              style={{ backgroundColor: sl.icon_url ? 'transparent' : (sl.badge_color || '#14b8a6') }}
+                            >
+                               {sl.icon_url ? (
+                                 <img src={sl.icon_url} alt={sl.level_code} className="w-full h-full object-cover" />
+                               ) : (
+                                 sl.level_code.toUpperCase()
+                               )}
+                            </div>
+                         </div>
+                         
+                         <h4 className="text-2xl font-black text-slate-800 italic leading-tight mb-3 group-hover:text-teal-600 transition-colors">{sl.title}</h4>
+                         <p className="text-sm text-slate-400 font-medium leading-relaxed mb-8 flex-1">{sl.description || 'Pelajari materi lengkap untuk level ini.'}</p>
+                         
+                         <div className="flex items-center justify-between pt-4 border-t border-slate-50 mt-auto">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                               Pilih Level
+                            </span>
+                            <span className="text-teal-500 font-bold opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 transition-all">→</span>
+                          </div>
 
-                               {/* Subtle decorative elements */}
-                               <div className="absolute -top-10 -right-10 h-32 w-32 bg-teal-500/5 rounded-full blur-3xl group-hover:bg-teal-500/10 transition-colors" />
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                         {/* Subtle decorative elements */}
+                         <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity" style={{ backgroundColor: sl.badge_color || '#14b8a6' }} />
+                      </Link>
+                    )) : (
+                       <div className="col-span-full py-10 text-center font-bold text-slate-400 italic">Level materi untuk kategori ini belum tersedia.</div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -512,14 +584,21 @@ export default function Home() {
 
         {/* Mobile Navigation */}
         <nav className="fixed inset-x-0 bottom-[calc(1.2rem+env(safe-area-inset-bottom))] z-50 px-8 md:hidden">
-          <div className="mx-auto max-w-[340px] bg-slate-900/90 backdrop-blur-3xl rounded-full p-1.5 flex items-center justify-around shadow-2xl ring-1 ring-white/10 outline outline-4 outline-black/5">
+          <div 
+            className="mx-auto max-w-[340px] rounded-full p-1.5 flex items-center justify-around shadow-2xl ring-1 ring-white/10 outline outline-4 outline-black/5"
+            style={{ backgroundColor: theme?.nav_bg || '#0f172a' }}
+          >
             {tabs.map((tab) => {
               const active = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => changeTab(tab.id)}
-                  className={`relative flex h-14 w-14 flex-col items-center justify-center rounded-full transition-all duration-500 ${active ? 'bg-white/10 text-teal-400' : 'text-slate-400'}`}
+                  style={{ 
+                    color: active ? (theme?.nav_active_color || '#2dd4bf') : undefined,
+                    backgroundColor: active ? 'rgba(255,255,255,0.1)' : 'transparent'
+                  }}
+                  className={`relative flex h-14 w-14 flex-col items-center justify-center rounded-full transition-all duration-500`}
                 >
                   <span className={`transition-all duration-500 ${active ? 'scale-110 -translate-y-0.5' : 'scale-100'}`}>
                     <tab.icon />
