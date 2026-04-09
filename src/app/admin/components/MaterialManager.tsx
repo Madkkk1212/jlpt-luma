@@ -182,7 +182,11 @@ export default function MaterialManager() {
                    <div className="relative z-10">
                      <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-3">
-                           {mat.icon_url && <img src={mat.icon_url || undefined} alt="icon" className="w-8 h-8 object-contain bg-slate-50 rounded-lg p-1" />}
+                           {mat.icon_url && (
+                             <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center p-1.5 shadow-sm">
+                               <img src={mat.icon_url || undefined} alt="icon" className="w-full h-full object-contain" />
+                             </div>
+                           )}
                            <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest ${mat.is_locked ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
                              {mat.is_locked ? 'Premium' : 'Free'}
                            </span>

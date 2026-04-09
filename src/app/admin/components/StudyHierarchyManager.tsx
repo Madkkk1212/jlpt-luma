@@ -475,10 +475,14 @@ export default function StudyHierarchyManager() {
                  </div>
                  <div className="pt-4 border-t">
                     <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Level Icon</label>
-                    <div className="flex items-center gap-4">
-                      {editingLevel.icon_url && <img src={editingLevel.icon_url} className="w-12 h-12 rounded bg-slate-100 object-cover" alt="icon"/>}
-                      <button onClick={() => openIconPicker('level')} className="px-4 py-2 bg-slate-100 font-bold text-xs rounded-lg hover:bg-slate-200">🖼️ Pilih dari Galeri</button>
-                    </div>
+                     <div className="flex items-center gap-4">
+                       {editingLevel.icon_url && (
+                         <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center p-2 shadow-sm ring-1 ring-slate-100">
+                           <img src={editingLevel.icon_url || undefined} className="w-full h-full object-contain" alt="icon"/>
+                         </div>
+                       )}
+                       <button onClick={() => openIconPicker('level')} className="flex-1 py-4 bg-slate-100 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all">🖼️ Pilih dari Galeri</button>
+                     </div>
                  </div>
               </div>
               <div className="flex justify-end gap-4 mt-8 pt-6 border-t">
@@ -505,10 +509,14 @@ export default function StudyHierarchyManager() {
                  </div>
                  <div className="pt-2">
                     <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Chapter Icon</label>
-                    <div className="flex items-center gap-4">
-                      {editingChapter.icon_url && <img src={editingChapter.icon_url} className="w-12 h-12 rounded bg-slate-100 object-cover" alt="icon"/>}
-                      <button onClick={() => openIconPicker('chapter')} className="px-4 py-2 bg-slate-100 font-bold text-xs rounded-lg hover:bg-slate-200">🖼️ Pilih dari Galeri</button>
-                    </div>
+                     <div className="flex items-center gap-4">
+                       {editingChapter.icon_url && (
+                         <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center p-2 shadow-sm ring-1 ring-slate-100">
+                           <img src={editingChapter.icon_url || undefined} className="w-full h-full object-contain" alt="icon"/>
+                         </div>
+                       )}
+                       <button onClick={() => openIconPicker('chapter')} className="flex-1 py-4 bg-slate-100 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all">🖼️ Pilih dari Galeri</button>
+                     </div>
                  </div>
                  <div className="pt-4 border-t">
                     <label className="flex items-center gap-3 cursor-pointer">

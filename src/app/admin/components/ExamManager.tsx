@@ -152,7 +152,11 @@ export default function ExamManager() {
                 onClick={() => handleSelectLevel(lvl)}
                 className={`w-full p-6 rounded-3xl text-left transition-all flex flex-col items-center gap-3 ${selectedLevel?.id === lvl.id ? 'bg-slate-900 text-white shadow-xl scale-105' : 'bg-white border border-slate-100 hover:bg-slate-50'}`}
               >
-                {lvl.icon_url && <img src={lvl.icon_url || undefined} alt="icon" className="w-12 h-12 object-contain" />}
+                {lvl.icon_url && (
+                  <div className="h-14 w-14 rounded-2xl bg-white flex items-center justify-center p-2 shadow-sm">
+                    <img src={lvl.icon_url || undefined} alt="icon" className="w-full h-full object-contain" />
+                  </div>
+                )}
                 <div className="text-center">
                    <p className="text-2xl font-black italic">{lvl.level_code.toUpperCase()}</p>
                    <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${selectedLevel?.id === lvl.id ? 'text-teal-400' : 'text-slate-400'}`}>{lvl.title}</p>
@@ -279,7 +283,11 @@ export default function ExamManager() {
                  <div>
                     <label className="text-[10px] font-black uppercase text-teal-600 mb-2 block">Level Icon</label>
                     <div className="flex items-center gap-4">
-                      {editingLevel.icon_url && <img src={editingLevel.icon_url || undefined} alt="icon" className="w-12 h-12 rounded-xl bg-slate-100 object-contain shadow-sm" />}
+                      {editingLevel.icon_url && (
+                        <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center p-1.5 shadow-sm border border-slate-100">
+                          <img src={editingLevel.icon_url || undefined} alt="icon" className="w-full h-full object-contain" />
+                        </div>
+                      )}
                       <button 
                         onClick={openIconPicker} 
                         className="flex-1 px-6 py-3 rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] hover:bg-slate-800 transition-all shadow-lg active:scale-95"
