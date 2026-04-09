@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { getTheme, getBanners, getMaterialCategories, getMaterials, getExamLevels, getProfileByEmail, upsertProfile, getStudyLevels, getCompletedMaterials, getTotalStudyMaterialsCount, getUserLastProgressDetails } from "@/lib/db";
 import { AppTheme, BannerSlide, MaterialCategory, Material, ExamLevel, Profile, StudyLevel } from "@/lib/types";
+import JapanNews from "./components/JapanNews";
 
 // --- ART ICON COMPONENTS ---
 const ArtNavIcon = {
@@ -665,6 +666,8 @@ export default function Home() {
                    <p className="text-slate-400 font-medium leading-relaxed leading-7">Desain premium yang berfokus pada ketenangan belajar. Kurikulum kami dirancang untuk membantu Anda menguasai Nihongo dengan cepat dan tepat.</p>
                 </div>
              </div>
+
+             <JapanNews />
              
              <div className="rounded-[3rem] bg-slate-900 p-10 text-white shadow-2xl">
                 <h4 className="text-xl font-black italic mb-6">Target Minggu Ini</h4>
