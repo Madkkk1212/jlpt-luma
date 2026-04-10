@@ -18,6 +18,7 @@ export default function AdminClient() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,19 +80,31 @@ export default function AdminClient() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col fixed inset-y-0 left-0 shadow-2xl z-50">
-        <div className="p-8 border-b border-white/10">
+      <aside className={`w-64 bg-slate-900 text-white flex flex-col fixed inset-y-0 left-0 shadow-2xl z-50 transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-8 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="h-10 w-10 bg-white text-slate-900 rounded-xl flex items-center justify-center font-black text-lg">L</div>
             <span className="font-black text-lg tracking-tight">Admin Luma</span>
           </div>
+          <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-white/50 hover:text-white p-2 text-xl font-bold">✕</button>
         </div>
         <nav className="flex-1 p-6 space-y-2">
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setIsSidebarOpen(false);
+              }}
               className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl font-bold transition ${activeTab === tab.id ? 'bg-white/10 text-white shadow-inner' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
             >
               <span className="text-xl">{tab.icon}</span>
@@ -105,16 +118,26 @@ export default function AdminClient() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-64 p-10 min-h-screen">
-        <header className="mb-10 flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-black text-slate-800">{tabs.find(t => t.id === activeTab)?.label}</h2>
-            <p className="text-slate-500 font-medium">Manage your {activeTab} content</p>
+      <main className="flex-1 lg:ml-64 p-6 md:p-10 min-h-screen">
+        <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-3 bg-white rounded-xl shadow-sm ring-1 ring-slate-100 lg:hidden text-slate-600 hover:text-slate-900 transition active:scale-95"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+              </svg>
+            </button>
+            <div>
+              <h2 className="text-2xl md:text-3xl font-black text-slate-800">{tabs.find(t => t.id === activeTab)?.label}</h2>
+              <p className="text-slate-500 font-medium text-sm md:text-base">Manage your {activeTab} content</p>
+            </div>
           </div>
-          <button onClick={() => window.open('/', '_blank')} className="px-6 py-2 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-slate-900/20 active:scale-95 transition">PREVIEW WEB</button>
+          <button onClick={() => window.open('/', '_blank')} className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-slate-900/20 active:scale-95 transition text-center">PREVIEW WEB</button>
         </header>
 
-        <section className="bg-white rounded-[2rem] p-10 shadow-sm ring-1 ring-slate-100">
+        <section className="bg-white rounded-[1.5rem] md:rounded-[2rem] p-6 md:p-10 shadow-sm ring-1 ring-slate-100">
           { activeTab === "dashboard" && <AdminDashboard /> }
           { activeTab === "icons" && <IconManager /> }
           { activeTab === "theme" && <ThemeManager /> }
